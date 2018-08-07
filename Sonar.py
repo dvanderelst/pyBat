@@ -5,9 +5,9 @@ import numpy
 import os
 from matplotlib import pyplot
 from scipy.interpolate import LinearNDInterpolator
-from pyBat import Misc
+import Misc
 from acoustics import atmosphere
-from pyBat import Frame
+import Frame
 
 
 def default_atmosphere(temperature=20, relative_humidity=100):

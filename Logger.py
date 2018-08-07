@@ -1,7 +1,7 @@
 import math
 import numpy
 import pandas
-from pyBat import Misc
+import Misc
 from matplotlib import pyplot
 from natsort import natsorted
 from scipy.interpolate import interp1d

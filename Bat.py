@@ -1,10 +1,9 @@
 import numpy
 import math
 from matplotlib import pyplot
-from mpl_toolkits.mplot3d import Axes3D
-from pyBat import Frame
-from pyBat import Logger
-from pyBat import Misc
+import Frame
+import Logger
+import Misc
 
 numpy.set_printoptions(precision=3)
 

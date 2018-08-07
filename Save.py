@@ -2,7 +2,7 @@ import shelve
 import os.path
 import shutil
 import copy
-from pyBat import Misc
+import Misc
 
 
 class DataSaver:

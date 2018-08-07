@@ -4,7 +4,7 @@ import numpy
 import copy
 from transforms3d import euler
 from transforms3d import quaternions
-from pyBat import Misc
+import Misc
 
 
 class Frame:

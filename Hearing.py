@@ -14,7 +14,7 @@ import random
 from scipy.spatial.distance import cdist
 from scipy.interpolate import RegularGridInterpolator
 from acoustics import atmosphere
-from pyBat import Frame
+import Frame
 
 
 def hz2erbrate(f):
@@ -168,7 +168,6 @@ class Locator:
         templates = self.templates + echo_db
         measurement = self.get_template_sph(real_az, real_el) + echo_db
 
-        #todo: change the detection threshold
         if numpy.max(measurement) < detection_threshold: out_of_fov = True
 
         # locate if perceivable
