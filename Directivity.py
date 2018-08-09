@@ -11,10 +11,13 @@ from scipy.interpolate import RegularGridInterpolator
 import Acoustics
 import Geometry
 import Misc
+import Smoothn
 from Acoustics import default_atmosphere, make_erb_cfs
 
 
 def read_hrtf(source, freq1, freq2):
+    if freq1 < 1000: freq1 = freq1 * 1000
+    if freq2 < 1000: freq2 = freq2 * 1000
     local = os.path.abspath(__file__)
     folder = os.path.dirname(local)
     name = 'hrtfs/' + source + '.hrtf'
@@ -46,31 +49,34 @@ def read_hrtf(source, freq1, freq2):
 
 
 def rotate_hrtf_slice(original_slice, yaw=0, pitch=0, roll=0, plot=True):
-    shape = original_slice.shape
-    original_slice = original_slice.flatten()
-    grids = Misc.angle_arrays(grid=True)
-    azimuth = grids[0].flatten()
-    elevation = grids[1].flatten()
-    old_dist = numpy.ones(azimuth.shape)
+    summed_angles = abs(yaw) + abs(pitch) + abs(roll)
+    if summed_angles > 0:
+        shape = original_slice.shape
+        original_slice = original_slice.flatten()
+        grids = Misc.angle_arrays(grid=True)
+        azimuth = grids[0].flatten()
+        elevation = grids[1].flatten()
+        old_dist = numpy.ones(azimuth.shape)
 
-    old_x, old_y, old_z = Geometry.sph2cart(azimuth, elevation, old_dist)
-    new_x, new_y, new_z = Geometry.rotate_points_cart(old_x, old_y, old_z, yaw=yaw, pitch=pitch, roll=roll)
+        old_x, old_y, old_z = Geometry.sph2cart(azimuth, elevation, old_dist)
+        new_x, new_y, new_z = Geometry.rotate_points_cart(old_x, old_y, old_z, yaw=yaw, pitch=pitch, roll=roll)
 
-    old_locations = numpy.row_stack((old_x, old_y, old_z))
-    old_locations = numpy.transpose(old_locations)
+        old_locations = numpy.row_stack((old_x, old_y, old_z))
+        old_locations = numpy.transpose(old_locations)
 
-    new_locations = numpy.row_stack((new_x, new_y, new_z))
-    new_locations = numpy.transpose(new_locations)
+        new_locations = numpy.row_stack((new_x, new_y, new_z))
+        new_locations = numpy.transpose(new_locations)
 
-    function_inter = NearestNDInterpolator(new_locations, original_slice)
-    new_slice = function_inter(old_locations)
-    new_slice = numpy.reshape(new_slice, shape)
-
+        function_inter = NearestNDInterpolator(new_locations, original_slice)
+        new_slice = function_inter(old_locations)
+        new_slice = numpy.reshape(new_slice, shape)
+    else:
+        new_slice = copy.copy(original_slice)
     if plot: plot_side_by_side(original_slice, new_slice)
     return new_slice
 
 
-def rotate_hrtf_data(original_data, yaw=0, pitch=0, roll=0, plot=True):
+def rotate_hrtf_block(original_data, yaw=0, pitch=0, roll=0, plot=True):
     new_data = numpy.zeros(original_data.shape)
     n_slice = new_data.shape[2]
     for i in range(0, n_slice):
@@ -94,14 +100,58 @@ def normalize_hrtf_data(data, db=False):
     return data
 
 
-def rotate_hrtf(hrtf, yaw=0, pitch=0, roll=0, plot=True):
+def process_rotation_settings(**kwargs):
+    yaw_left = kwargs.pop('yaw_left', None)
+    yaw_right = kwargs.pop('yaw_right', None)
+    yaw_nose = kwargs.pop('yaw_nose', None)
+
+    pitch_left = kwargs.pop('pitch_left', None)
+    pitch_right = kwargs.pop('pitch_right', None)
+    pitch_nose = kwargs.pop('pitch_nose', None)
+
+    roll_left = kwargs.pop('roll_left', None)
+    roll_right = kwargs.pop('roll_right', None)
+    roll_nose = kwargs.pop('roll_nose', None)
+
+    yaw = kwargs.pop('yaw', 0)
+    pitch = kwargs.pop('pitch', 0)
+    roll = kwargs.pop('roll', 0)
+
+    if yaw_left is None: yaw_left = yaw
+    if yaw_right is None: yaw_right = yaw
+    if yaw_nose is None: yaw_nose = yaw
+
+    if pitch_left is None: pitch_left = pitch
+    if pitch_right is None: pitch_right = pitch
+    if pitch_nose is None: pitch_nose = pitch
+
+    if roll_left is None: roll_left = roll
+    if roll_right is None: roll_right = roll
+    if roll_nose is None: roll_nose = roll
+
+    left = (yaw_left, pitch_left, roll_left)
+    right = (yaw_right, pitch_right, roll_right)
+    nose = (yaw_nose, pitch_nose, roll_nose)
+
+    keys = kwargs.keys()
+    if len(keys) > 0: raise ValueError('Unused keyword arguments passed')
+    return left, right, nose
+
+
+def rotate_hrtf(hrtf, **kwargs):
+    plot = kwargs.pop('plot', False)
+    left_rot, right_rot, nose_rot = process_rotation_settings(**kwargs)
+
     left = hrtf['left']
     right = hrtf['right']
     nose = hrtf['nose']
 
-    new_left = rotate_hrtf_data(left, yaw, pitch, roll, False)
-    new_right = rotate_hrtf_data(right, yaw, pitch, roll, False)
-    new_nose = rotate_hrtf_data(nose, yaw, pitch, roll, False)
+    yaw, pitch, roll = left_rot
+    new_left = rotate_hrtf_block(left, yaw, pitch, roll, False)
+    yaw, pitch, roll = right_rot
+    new_right = rotate_hrtf_block(right, yaw, pitch, roll, False)
+    yaw, pitch, roll = nose_rot
+    new_nose = rotate_hrtf_block(nose, yaw, pitch, roll, False)
 
     if plot:
         plot_side_by_side(left, new_left)
@@ -125,8 +175,8 @@ def plot_side_by_side(original, rotated, labels=[]):
     grids = Misc.angle_arrays(grid=True)
     azimuth = grids[0].flatten()
     elevation = grids[1].flatten()
-    min = numpy.min(original)
-    max = numpy.max(original)
+    min = numpy.min(numpy.minimum(original, rotated))
+    max = numpy.max(numpy.maximum(original, rotated))
     levels = numpy.linspace(min, max, 10)
 
     pyplot.figure()
@@ -139,15 +189,19 @@ def plot_side_by_side(original, rotated, labels=[]):
 
 
 class TransferFunction:
-    def __init__(self , source, freq1, freq2, *, yaw=0, pitch=0, roll=0, db=True, collapse=False):
+    def __init__(self, source, freq1, freq2, db=True, collapse=False, full=True, **kwargs):
         hrtf = read_hrtf(source, freq1, freq2)
-        self.hrtf = rotate_hrtf(hrtf, yaw, pitch, roll, False)
+        self.hrtf = rotate_hrtf(hrtf, **kwargs)
         self.freq = self.hrtf['freq']
         self.collapsed = False
 
         # Combine emission and hearing
-        self.left = self.hrtf['left'] #* self.hrtf['nose']
-        self.right = self.hrtf['right'] #* self.hrtf['nose']
+        if full:
+            self.left = self.hrtf['left'] * self.hrtf['nose']
+            self.right = self.hrtf['right'] * self.hrtf['nose']
+        else:
+            self.left = self.hrtf['left']
+            self.right = self.hrtf['right']
 
         # Collapsing data
         if collapse:
@@ -169,19 +223,14 @@ class TransferFunction:
         self.left_function = RegularGridInterpolator(coordinates, self.left)
         self.right_function = RegularGridInterpolator(coordinates, self.right)
 
-
     def plot(self):
         labels = ['Right', 'Left']
         plot_side_by_side(self.right, self.left, labels)
-
-
 
     def get_templates(self, azimuths, elevations):
         result_left = []
         result_right = []
         for az_point, el_point in zip(azimuths, elevations):
-            #az_point = numpy.array(az_point)
-            #el_point = numpy.array(el_point)
             coordinate = (el_point, az_point, self.freq)
             if self.collapsed: coordinate = (el_point, az_point)
             left_data = self.left_function(coordinate)
@@ -194,15 +243,17 @@ class TransferFunction:
         return result_left, result_right
 
 
-tf = TransferFunction('pd01', freq1=28000, freq2=30000, collapse=True, db=True)
-r = tf.get_templates([20, 30], [0, 0])
-print(r)
+if __name__ == "__main__":
 
-tf = TransferFunction('pd01', freq1=29000, freq2=30000, collapse=False, db=True, pitch=0)
-r = tf.get_templates([-20, -30], [0, 0])
-print(r[0])
-print('')
-print(r[1])
+    tf = TransferFunction('pd01', freq1=28, freq2=30, collapse=True, db=True)
+    r = tf.get_templates([20, 30], [0, 0])
+    print(r)
 
-tf.plot()
-pyplot.show()
+    tf = TransferFunction('pd01', freq1=29, freq2=30, collapse=True, db=True, yaw_left=-10, yaw_right=10)
+    r = tf.get_templates([0,  0], [-10, 20])
+    print('left', r[0])
+    print('')
+    print('right', r[1])
+
+    tf.plot()
+    pyplot.show()
