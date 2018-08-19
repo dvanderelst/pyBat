@@ -1,7 +1,7 @@
 import numpy
 import math
 from matplotlib import pyplot
-import Frame
+import Geometry
 import Logger
 import Misc
 
@@ -10,14 +10,14 @@ numpy.set_printoptions(precision=3)
 
 class Bat:
     def __init__(self):
-        self.body_abs = Frame.Frame()
-        self.head_rel = Frame.Frame()
+        self.body_abs = Geometry.Frame()
+        self.head_rel = Geometry.Frame()
         self.logger = Logger.Logger()
         self.clock = 0
 
     @property
     def head_abs(self):
-        head_abs = Frame.Frame(quaternion=self.body_abs.quaternion, position=self.body_abs.position)
+        head_abs = Geometry.Frame(quaternion=self.body_abs.quaternion, position=self.body_abs.position)
         head_abs.apply_quaternion(self.head_rel.quaternion)
         return head_abs
 
@@ -50,9 +50,9 @@ class Bat:
         keys = kwargs.keys()
         if len(keys) > 0: raise ValueError('Unused keyword arguments passed')
 
-        head_yaw = head_yaw - body_yaw
-        head_pitch = head_pitch - body_pitch
-        head_roll = head_roll - body_roll
+        #head_yaw = head_yaw - body_yaw
+        #head_pitch = head_pitch - body_pitch
+        #head_roll = head_roll - body_roll
 
         if nr_of_steps < 2: nr_of_steps = 2
         time_steps = numpy.linspace(0, time, nr_of_steps)
@@ -133,7 +133,7 @@ class Bat:
         for index in range(0, len(time_stamps)):
             quaternion = Misc.mat2array(quaternions[index, :])
             position = Misc.mat2array(positions[index, :])
-            frame = Frame.Frame(quaternion=quaternion, position=position)
+            frame = Geometry.Frame(quaternion=quaternion, position=position)
             vector = frame.direction_vector
             vector = Misc.normalize_vector(vector)
             vectors[index, :] = vector
@@ -155,7 +155,11 @@ class Bat:
         axis.set_zlabel('Z Label')
 
     def plot_quiver(self, time_stamps=None, view='top', length=0.05):
+        t = self.logger['time']
+        mn = t.min()
+        mx = t.max()
         if time_stamps is None: time_stamps = self.logger['time']
+        if type(time_stamps) == float: time_stamps = numpy.arange(mn, mx, time_stamps)
         vectors_head_abs, start_head_abs, _ = self.get_history_vectors(time_stamps=time_stamps, frame='a')
         vectors_body_abs, start_body_abs, _ = self.get_history_vectors(time_stamps=time_stamps, frame='b')
 

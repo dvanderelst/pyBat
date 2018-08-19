@@ -47,12 +47,18 @@ class Logger:
         return data
 
     def get_history(self, field, time_stamps=None, gradient=False, unwrap=False, return_time=False, absolute=False):
-        # Get data
-        keys = self.keys
-        if field not in keys: return 0
-        data = self.get(field, unwrap)
         # Get the time axis for the field
         time = self.time
+        if time is None: return numpy.zeros(1)
+        # get time stamps
+        if time_stamps is None: time_stamps = max(time)
+        if isinstance(time_stamps, str) and time_stamps == 'all': time_stamps = time
+        if not Misc.iterable(time_stamps): time_stamps = [time_stamps]
+        time_stamps = numpy.array(time_stamps, dtype='f')
+        # Get data
+        keys = self.keys
+        if field not in keys: return numpy.zeros(time_stamps.shape)
+        data = self.get(field, unwrap)
         if time is None: time = range(0, len(data))
         # Make data interpolatable
         if len(data) < 2:
@@ -60,23 +66,16 @@ class Logger:
             time = numpy.ones(2) * time
         # Apply abs
         if absolute: data = numpy.abs(data)
-
-        # get time stamps
-        if time_stamps is None: time_stamps = max(time)
-        if isinstance(time_stamps, str) and time_stamps == 'all': time_stamps = time
-        if not Misc.iterable(time_stamps): time_stamps = [time_stamps]
-        time_stamps = numpy.array(time_stamps, dtype='f')
         # handle negative time stamps
         time_stamps[time_stamps < 0] = time_stamps[time_stamps < 0] + max(time)
         # handle time stamps not in range
         time_stamps[time_stamps < min(time)] = min(time)
         time_stamps[time_stamps > max(time)] = max(time)
         # get gradient
+        differentiable = numpy.max(numpy.abs(numpy.diff(data)))
         if gradient:
-            # dt = numpy.gradient(time, edge_order=2)
-            # dv = numpy.gradient(data, edge_order=2)
-            # data = dv / dt
-            data = numpy.gradient(data, time, edge_order=1)
+            if differentiable > 0: data = numpy.gradient(data, time, edge_order=1)
+            if differentiable == 0: data = numpy.zeros(data.shape)
             data[~numpy.isfinite(data)] = 0
         # interpolate
         first_value = data[0]
@@ -109,8 +108,8 @@ class Logger:
             current_key = keys[index]
             data = self.get(current_key)
             if time is None: time = range(0, len(data))
-            pyplot.subplot(rows, columns, index + 1)
-            pyplot.plot(time, data, '-.')
+            if len(keys) > 1: pyplot.subplot(rows, columns, index + 1)
+            pyplot.plot(time, data, '.-')
             pyplot.xlabel('time')
             pyplot.ylabel(current_key)
             pyplot.title(current_key)

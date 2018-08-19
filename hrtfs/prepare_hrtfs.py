@@ -3,8 +3,11 @@ from matplotlib import pyplot
 import numpy
 import pickle
 import os
-import Smoothn
 print(os.getcwd())
+
+#
+# HRTFS are assumed to be -180, 180 and -90 90. In steps of 2.5 degrees.
+#
 
 ###############################
 # Standard Phillostomus HRTF
@@ -20,25 +23,27 @@ freqs = numpy.squeeze(freqs)
 ear_min = numpy.min(left)
 nose_min = numpy.min(nose)
 
-
 right = numpy.fliplr(left)
-mean_right = numpy.mean(right, 2)
-mean_left = numpy.mean(left, 2)
-mean_nose = numpy.mean(nose, 2)
+nose = (nose + numpy.fliplr(nose))/2
 
-left_side_ear = numpy.reshape(mean_left[:,0],(73,1))
-right_side_ear = numpy.reshape(mean_left[:,72],(73,1))
-left_side_nose = numpy.reshape(mean_nose[:,0],(73,1))
-right_side_nose = numpy.reshape(mean_nose[:,72],(73,1))
+
+left_side_ear = numpy.reshape(left[:,0,:],(73,1,141))
+right_side_ear = numpy.reshape(left[:,72,:],(73,1,141))
+left_side_nose = numpy.reshape(nose[:,0,:],(73,1,141))
+right_side_nose = numpy.reshape(nose[:,72,:],(73,1,141))
 
 a = numpy.repeat(left_side_ear,36, axis=1)
 b = numpy.repeat(right_side_ear,36, axis=1)
 c = numpy.repeat(left_side_nose,36, axis=1)
 d = numpy.repeat(left_side_nose,36, axis=1)
 
-mean_left = numpy.concatenate((a, mean_left, b), 1)
-mean_right = numpy.concatenate((b, mean_right, a), 1)
-mean_nose = numpy.concatenate((c, mean_nose, d), 1)
+left = numpy.concatenate((a, left, b), 1)
+right = numpy.concatenate((b, right, a), 1)
+nose = numpy.concatenate((c, nose, d), 1)
+
+mean_left = numpy.mean(left, axis=2)
+mean_right = numpy.mean(right, axis=2)
+mean_nose = numpy.mean(nose, axis=2)
 
 pyplot.figure()
 pyplot.subplot(2, 2, 1)

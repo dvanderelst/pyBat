@@ -1,50 +1,84 @@
+import copy
 import os
 import pickle
-import random
-import time
-import copy
+
 import numpy
 from matplotlib import pyplot
 from scipy.interpolate import NearestNDInterpolator
 from scipy.interpolate import RegularGridInterpolator
 
-import Acoustics
 import Geometry
 import Misc
-import Smoothn
-from Acoustics import default_atmosphere, make_erb_cfs
 
 
-def read_hrtf(source, freq1, freq2):
-    if freq1 < 1000: freq1 = freq1 * 1000
-    if freq2 < 1000: freq2 = freq2 * 1000
+def read_hrtf(source, freq_list):
     local = os.path.abspath(__file__)
     folder = os.path.dirname(local)
-    name = 'hrtfs/' + source + '.hrtf'
-    name = os.path.join(folder, name)
-    stream = open(name, 'rb')
+
+    cache_file = 'hrtfs/cache.hrtf'
+    hrtf_file = 'hrtfs/' + source + '.hrtf'
+    hrtf_file = os.path.join(folder, hrtf_file)
+    cache_file = os.path.join(folder, cache_file)
+    # Try using cached version - to speed up things
+    try:
+        stream = open(cache_file, 'rb')
+        hrtf = pickle.load(stream)
+        stream.close()
+
+        same_freqs = numpy.min(freq_list == hrtf['freq'])
+        same_source = source == hrtf['source']
+        if same_freqs and same_source: return hrtf
+        print('read_hrtf: Reading HRTF cache failed. Loading...')
+    except:
+        print('read_hrtf: Reading HRTF cache failed. Loading...')
+
+    stream = open(hrtf_file, 'rb')
     data = pickle.load(stream)
     stream.close()
 
-    freq = data['freq']
     left = data['left']
     right = data['right']
     nose = data['nose']
 
-    value1, index1 = Misc.closest(freq, freq1)
-    value2, index2 = Misc.closest(freq, freq2)
-    index2 += 1
+    grids = Misc.angle_arrays(grid=False)
+    azimuths = grids[0]
+    elevations = grids[1]
+    frequencies = data['freq']
 
-    left = left[:, :, index1:index2]
-    right = right[:, :, index1:index2]
-    nose = nose[:, :, index1:index2]
-    frequency_range = freq[index1:index2]
+    coordinates = (elevations, azimuths, frequencies)
+    left_function = RegularGridInterpolator(coordinates, left)
+    right_function = RegularGridInterpolator(coordinates, right)
+    nose_function = RegularGridInterpolator(coordinates, nose)
+
+    n = len(freq_list)
+    new_left = numpy.zeros((73, 145, n))
+    new_right = numpy.zeros((73, 145, n))
+    new_nose = numpy.zeros((73, 145, n))
+
+    for r in range(0, 73):
+        for c in range(0, 145):
+            el = elevations[r]
+            az = azimuths[c]
+            interpolation = (el, az, freq_list)
+            left_data = left_function(interpolation)
+            right_data = right_function(interpolation)
+            nose_data = nose_function(interpolation)
+
+            new_left[r, c, :] = left_data
+            new_right[r, c, :] = right_data
+            new_nose[r, c, :] = nose_data
 
     hrtf = {}
-    hrtf['nose'] = nose
-    hrtf['left'] = left
-    hrtf['right'] = right
-    hrtf['freq'] = frequency_range
+    hrtf['source'] = source
+    hrtf['nose'] = new_nose
+    hrtf['left'] = new_left
+    hrtf['right'] = new_right
+    hrtf['freq'] = freq_list
+
+    f = open(cache_file, 'wb')
+    pickle.dump(hrtf, f)
+    f.close()
+
     return hrtf
 
 
@@ -133,8 +167,6 @@ def process_rotation_settings(**kwargs):
     right = (yaw_right, pitch_right, roll_right)
     nose = (yaw_nose, pitch_nose, roll_nose)
 
-    keys = kwargs.keys()
-    if len(keys) > 0: raise ValueError('Unused keyword arguments passed')
     return left, right, nose
 
 
@@ -180,22 +212,21 @@ def plot_side_by_side(original, rotated, labels=[]):
     levels = numpy.linspace(min, max, 10)
 
     pyplot.figure()
-    pyplot.subplot(1, 2, 1)
+    pyplot.subplot(2, 1, 1)
     Misc.plot_map(azimuth, elevation, original.flatten(), levels=levels)
     pyplot.title(labels[0])
-    pyplot.subplot(1, 2, 2)
+    pyplot.subplot(2, 1, 2)
     Misc.plot_map(azimuth, elevation, rotated.flatten(), levels=levels)
     pyplot.title(labels[1])
 
 
 class TransferFunction:
-    def __init__(self, source, freq1, freq2, db=True, collapse=False, full=True, **kwargs):
-        hrtf = read_hrtf(source, freq1, freq2)
+    def __init__(self, source, freq_list, db=True, collapse=False, full=True, **kwargs):
+        hrtf = read_hrtf(source, freq_list)
         self.hrtf = rotate_hrtf(hrtf, **kwargs)
         self.freq = self.hrtf['freq']
         self.collapsed = False
 
-        # Combine emission and hearing
         if full:
             self.left = self.hrtf['left'] * self.hrtf['nose']
             self.right = self.hrtf['right'] * self.hrtf['nose']
@@ -227,9 +258,19 @@ class TransferFunction:
         labels = ['Right', 'Left']
         plot_side_by_side(self.right, self.left, labels)
 
-    def get_templates(self, azimuths, elevations):
+    def query_collapsed(self, azimuths, elevations):
+        azimuths = numpy.array(azimuths)
+        elevations = numpy.array(elevations)
+        coordinates = numpy.row_stack((elevations,azimuths))
+        coordinates = numpy.transpose(coordinates)
+        left_data = self.left_function(coordinates)
+        right_data = self.right_function(coordinates)
+        return left_data, right_data
+
+    def query(self, azimuths, elevations):
         result_left = []
         result_right = []
+        if self.collapsed: return self.query_collapsed(azimuths, elevations)
         for az_point, el_point in zip(azimuths, elevations):
             coordinate = (el_point, az_point, self.freq)
             if self.collapsed: coordinate = (el_point, az_point)
@@ -244,16 +285,15 @@ class TransferFunction:
 
 
 if __name__ == "__main__":
+    tf = TransferFunction('pd01', freq_list=[30123], collapse=True, db=True)
+    r = tf.query([20, 30], [0, 0])
+    # print(r)
 
-    tf = TransferFunction('pd01', freq1=28, freq2=30, collapse=True, db=True)
-    r = tf.get_templates([20, 30], [0, 0])
-    print(r)
-
-    tf = TransferFunction('pd01', freq1=29, freq2=30, collapse=True, db=True, yaw_left=-10, yaw_right=10)
-    r = tf.get_templates([0,  0], [-10, 20])
-    print('left', r[0])
-    print('')
-    print('right', r[1])
+    # tf = TransferFunction('pd01', freq1=29, freq2=30, collapse=True, db=True, yaw_left=-10, yaw_right=10)
+    # r = tf.get_templates([0, 0], [-10, 20])
+    # print('left', r[0])
+    # print('')
+    # print('right', r[1])
 
     tf.plot()
     pyplot.show()

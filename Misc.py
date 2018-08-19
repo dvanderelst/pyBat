@@ -3,6 +3,17 @@ from matplotlib import pyplot
 from sklearn import linear_model
 import shutil
 import os
+from mpl_toolkits.basemap import Basemap
+
+
+def plot_map(az, el, z, levels):
+    mmap = Basemap(projection='hammer', lat_0=0, lon_0=0)
+    x, y = mmap(az, el)
+    mmap.contourf(x, y, z, tri=True, cmap='inferno', levels=levels)
+    parallels = numpy.arange(-90, 90, 60)
+    mmap.drawparallels(parallels)
+    meridians = numpy.arange(-180, 180, 60)
+    mmap.drawmeridians(meridians)
 
 
 def clear_folder(folder):
