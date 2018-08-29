@@ -251,6 +251,7 @@ class TransferFunction:
         elevation = grids[1]
         coordinates = (elevation, azimuth, self.freq)
         if self.collapsed: coordinates = (elevation, azimuth)
+        if not self.collapsed and len(self.freq)<2: raise ValueError('Need more than 1 frequency')
         self.left_function = RegularGridInterpolator(coordinates, self.left)
         self.right_function = RegularGridInterpolator(coordinates, self.right)
 
@@ -267,26 +268,19 @@ class TransferFunction:
         right_data = self.right_function(coordinates)
         return left_data, right_data
 
-    def query(self, azimuths, elevations):
-        result_left = []
-        result_right = []
+    def query(self, azimuths, elevations, freqs = None):
         if self.collapsed: return self.query_collapsed(azimuths, elevations)
-        for az_point, el_point in zip(azimuths, elevations):
-            coordinate = (el_point, az_point, self.freq)
-            if self.collapsed: coordinate = (el_point, az_point)
-            left_data = self.left_function(coordinate)
-            right_data = self.right_function(coordinate)
-            result_left.append(left_data)
-            result_right.append(right_data)
-
-        result_left = numpy.squeeze(result_left)
-        result_right = numpy.squeeze(result_right)
+        if freqs is None: freqs = self.freq
+        az_grid, el_grid, f_grid = numpy.meshgrid(azimuths, elevations, freqs)
+        result_left = self.left_function((el_grid, az_grid, f_grid))
+        result_right = self.right_function((el_grid, az_grid, f_grid))
         return result_left, result_right
 
 
 if __name__ == "__main__":
-    tf = TransferFunction('pd01', freq_list=[30123], collapse=True, db=True)
-    r = tf.query([20, 30], [0, 0])
+    from matplotlib import pyplot
+    tf = TransferFunction('pd01', freq_list=[30000,35000], collapse=False, db=True)
+    l,r = tf.query(range(-180,180), range(-90,90))
     # print(r)
 
     # tf = TransferFunction('pd01', freq1=29, freq2=30, collapse=True, db=True, yaw_left=-10, yaw_right=10)
@@ -295,5 +289,7 @@ if __name__ == "__main__":
     # print('')
     # print('right', r[1])
 
-    tf.plot()
+    t = numpy.mean(l, axis=2)
+    pyplot.imshow(t)
     pyplot.show()
+

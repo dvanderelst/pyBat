@@ -10,3 +10,6 @@ class Controller:
         output = self.kp * error + self.kd * derivative
         self.previous_error = error
         return output
+
+    def reset(self):
+        self.previous_error = None

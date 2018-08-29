@@ -33,6 +33,10 @@ class Bat:
     def z(self):
         return self.body_abs.z
 
+    @property
+    def position(self):
+        return self.body_abs.position
+
     def motion(self, **kwargs):
         time = kwargs.pop('time', 0)
         nr_of_steps = math.ceil(time / 0.01)
@@ -54,9 +58,11 @@ class Bat:
         #head_pitch = head_pitch - body_pitch
         #head_roll = head_roll - body_roll
 
-        if nr_of_steps < 2: nr_of_steps = 2
-        time_steps = numpy.linspace(0, time, nr_of_steps)
-        time_steps = numpy.diff(time_steps)
+        if nr_of_steps > 1:
+            time_steps = numpy.linspace(0, time, nr_of_steps)
+            time_steps = numpy.diff(time_steps)
+        else:
+            time_steps = [time]
 
         for step in time_steps:
             self.body_abs.move(time=step, yaw=body_yaw, pitch=body_pitch, roll=body_roll, speed=speed)

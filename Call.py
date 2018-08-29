@@ -3,6 +3,7 @@ import Acoustics
 import numpy
 import time
 
+
 class Call:
     def __init__(self, source, freq_list, **kwargs):
         self.mean_frequency = numpy.mean(numpy.array(freq_list))
@@ -14,9 +15,8 @@ class Call:
         self.spreading_parameter = -40  # Parameter C2 in Stilz and Schnitzler
         self.call_level = 120
         self.detection_threshold = 20
-        self.noise = 3
 
-    def call(self, azimuths, elevations, distances, filter_distance=False):
+    def call(self, azimuths, elevations, distances, noise=None, filter_distance=False):
         start = time.time()
         azimuths = numpy.array(azimuths)
         elevations = numpy.array(elevations)
@@ -26,19 +26,20 @@ class Call:
             # based on distance
             azimuths = azimuths[distances < filter_distance]
             elevations = elevations[distances < filter_distance]
+            noise = noise[distances < filter_distance]
             distances = distances[distances < filter_distance]
             # based on angle
-            abs_az = numpy.abs(azimuths)
-            in_view = abs_az < 120
-            azimuths = azimuths[in_view]
-            elevations = elevations[in_view]
-            distances = distances[in_view]
+            #abs_az = numpy.abs(azimuths)
+            #in_view = abs_az < 120
+            #azimuths = azimuths[in_view]
+            #elevations = elevations[in_view]
+            #noise = noise[in_view]
+            #distances = distances[in_view]
 
         spreading = self.spreading_parameter * numpy.log10(distances / self.reference_distance)
         attenuation = self.attenuation_coefficient * distances * 2
         echo_db = self.call_level + spreading + attenuation + self.reflection_parameter
-        noise = numpy.random.normal(0, self.noise, echo_db.shape)
-        echo_db = echo_db + noise
+        if noise is not None: echo_db = echo_db + noise
 
         directivity = self.transfer.query(azimuths, elevations)
         echo_db_left = echo_db + directivity[0]
@@ -64,7 +65,7 @@ class Call:
         return result
 
 
-def process4avoidance(result, delta_t = 0.01):
+def process4avoidance(result, delta_t=0.1):
     detectable = result['detectable']
     delays = result['delays']
     detectable_delays = delays[detectable]
@@ -94,4 +95,3 @@ if __name__ == "__main__":
     result = c.call(azs, els, distances)
     print('call2')
     result = c.call(azs, els, distances)
-

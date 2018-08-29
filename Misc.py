@@ -4,6 +4,7 @@ from sklearn import linear_model
 import shutil
 import os
 from mpl_toolkits.basemap import Basemap
+from scipy import signal
 
 
 def plot_map(az, el, z, levels):
@@ -110,7 +111,7 @@ def mat2array(matrix):
 
 def normalize_vector(vector):
     norm = numpy.linalg.norm(vector)
-    if norm == 0:return  vector
+    if norm == 0: return vector
     x = vector / norm
     return x
 
@@ -273,11 +274,18 @@ def sign(x):
 def values2labels(lst):
     labels = []
     for x in lst:
-        label = 'Condition ' + str(x+1)
+        label = 'Condition ' + str(x + 1)
         labels.append(label)
     return labels
     #    if x == 0:
     #        labels.append('Fixed')
     #    else:
     #        labels.append(str(x) + ' deg/s$^2$')
-    #return labels
+    # return labels
+
+
+def smooth(x, window_len=11, window='hanning'):
+    s = numpy.r_[x[window_len - 1:0:-1], x, x[-2:-window_len - 1:-1]]
+    w = eval('signal.windows.' + window + '(window_len)')
+    y = numpy.convolve(w / w.sum(), s, mode='valid')
+    return y
