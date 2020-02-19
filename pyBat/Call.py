@@ -1,8 +1,6 @@
-import Directivity
-import Acoustics
+from pyBat import Acoustics, Directivity
 import numpy
 import time
-import copy
 
 
 def out_of_fov(azimuths, elevations):

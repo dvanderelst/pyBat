@@ -1,9 +1,8 @@
 import time
-import Geometry
 import numpy
-import Acoustics
+from pyBat import Acoustics, Geometry
 import random
-from Directivity import TransferFunction
+from pyBat.Directivity import TransferFunction
 from scipy.spatial.distance import cdist
 
 

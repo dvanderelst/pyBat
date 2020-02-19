@@ -1,7 +1,5 @@
-import Bat
 import numpy
-import Call
-import Acoustics
+from pyBat import Acoustics, Bat, Call
 
 from scipy.interpolate import interp1d
 

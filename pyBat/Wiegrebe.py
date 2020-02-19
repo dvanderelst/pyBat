@@ -1,10 +1,9 @@
 import numpy
 from matplotlib import pyplot
 
-from Signal import LowPassFilter, rectify
-from pyfilterbank.gammatone import GammatoneFilterbank
+from pyBat.Signal import LowPassFilter, rectify
+from pyBat.pyfilterbank.gammatone import GammatoneFilterbank
 from scipy.signal import freqz
-from scipy.signal import lfilter
 
 
 class ModelWiegrebe:

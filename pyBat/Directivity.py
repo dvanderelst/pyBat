@@ -1,14 +1,12 @@
 import copy
 import os
 import pickle
-from matplotlib import  pyplot
 
 import numpy
 from scipy.interpolate import NearestNDInterpolator
 from scipy.interpolate import RegularGridInterpolator
 
-import Geometry
-import Misc
+from pyBat import Misc, Geometry
 
 
 def read_hrtf(source, freq_list):

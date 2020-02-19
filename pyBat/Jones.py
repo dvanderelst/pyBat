@@ -2,7 +2,8 @@ import os
 import pandas
 import numpy
 from matplotlib import pyplot
-import Misc
+from pyBat import Misc
+
 
 class Jones:
     def __init__(self):

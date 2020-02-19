@@ -28,12 +28,11 @@ Functions
 ---------
 """
 import numpy as np  # TODO: resolve imports for terz fft class...
-from numpy import (abs, arange, argmin, array, copy, diff, ones,
-                   pi, real, reshape, sqrt, tan, tile, zeros)
+from numpy import (arange, argmin, array, copy, diff, reshape, sqrt, zeros)
 from scipy.fftpack import rfft
-from pyfilterbank.sosfiltering import (sosfilter_py, sosfilter_double_c,
-                       sosfilter_cprototype_py, sosfilter_double_mimo_c)
-from pyfilterbank.butterworth import butter_sos
+from pyBat.pyfilterbank.sosfiltering import (sosfilter_py, sosfilter_double_c,
+                                             sosfilter_cprototype_py, sosfilter_double_mimo_c)
+from pyBat.pyfilterbank import butter_sos
 
 standardized_nominal_frequencies = array([
     0.1, 0.125, 0.16, 0.2, 0.25, 0.315, 0.4, 0.5, 0.6, 3, 0.8,
@@ -251,7 +250,7 @@ class FractionalOctaveFilterbank:
 
     Examples
     --------
-    >>> from pyfilterbank import FractionalOctaveFilterbank
+    >>> from pyBat.pyfilterbank import FractionalOctaveFilterbank
     >>> from pylab import plt, np
     >>>
     >>> sample_rate = 44100

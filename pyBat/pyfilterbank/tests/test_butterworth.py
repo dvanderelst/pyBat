@@ -2,8 +2,8 @@ import unittest
 import numpy as np
 import sys
 sys.path.append("..")
-import pyfilterbank.sosfiltering as sf
-import pyfilterbank.butterworth as bw
+import pyBat.pyfilterbank.sosfiltering as sf
+from pyBat import pyfilterbank as bw
 
 
 class ButterSosTestCase(unittest.TestCase):

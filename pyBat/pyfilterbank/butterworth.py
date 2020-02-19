@@ -2,11 +2,10 @@
 
 
 """
-from numpy import (mod, exp, zeros, ones, arange, kron, real, flipud,
-                   conj, pi, fliplr, sqrt, tan, tile, concatenate, append, double)
-from scipy.signal import butter, buttord, buttap
+from numpy import (mod, exp, zeros, ones, arange, flipud,
+                   pi, fliplr, sqrt, tan, concatenate, append, double)
 
-from pyfilterbank.sosfiltering import bilinear_sos
+from pyBat.pyfilterbank.sosfiltering import bilinear_sos
 
 lowpass = 'lowpass'
 highpass = 'highpass'

@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-import pyfilterbank.octbank as fb
+import pyBat.pyfilterbank.octbank as fb
 
 
 def zeros(num_samples=1024, num_chan=1):

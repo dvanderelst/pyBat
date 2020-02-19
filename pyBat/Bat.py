@@ -1,9 +1,7 @@
 import numpy
 import math
 from matplotlib import pyplot
-import Geometry
-import Logger
-import Misc
+from pyBat import Misc, Logger, Geometry
 
 numpy.set_printoptions(precision=3)
 

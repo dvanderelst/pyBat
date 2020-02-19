@@ -65,7 +65,7 @@ else:
 
 
 if __name__ != '__main__':
-    _mylibpath = os.path.join('.', os.path.dirname(__file__))
+    _mylibpath = os.path.join('', os.path.dirname(__file__))
 else:
     _mylibpath = os.curdir
 

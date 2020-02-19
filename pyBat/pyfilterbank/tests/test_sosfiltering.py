@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 import sys
 sys.path.append("..")
-import pyfilterbank.sosfiltering as sf
+import pyBat.pyfilterbank.sosfiltering as sf
 
 
 class SosFilterTestCase(unittest.TestCase):
