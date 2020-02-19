@@ -29,7 +29,9 @@ class Frame:
 
     @property
     def rotation_matrix_frame2world(self):
-        return quaternions.quat2mat(self.quaternion)
+        mat = quaternions.quat2mat(self.quaternion)
+        mat = numpy.squeeze(mat)
+        return mat
 
     @property
     def rotation_matrix_world2frame(self):

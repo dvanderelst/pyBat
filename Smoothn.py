@@ -29,7 +29,7 @@ def smoothn(y,nS0=10,axis=None,smoothOrder=2.0,sd=None,verbose=False,\
 
    Z = SMOOTHN(Y,S) smoothes the array Y using the smoothing parameter S.
    S must be a real positive scalar. The larger S is, the smoother the
-   output will be. If the smoothing parameter S is omitted (see previous
+   wiegrebe_output will be. If the smoothing parameter S is omitted (see previous
    option) or empty (i.e. S = []), it is automatically determined using
    the generalized cross-validation (GCV) method.
 
@@ -111,7 +111,7 @@ def smoothn(y,nS0=10,axis=None,smoothOrder=2.0,sd=None,verbose=False,\
 
    # 2-D example with missing data
    n = 256;
-   y0 = peaks(n);
+   y0 = peaks_left(n);
    y = y0 + rand(size(y0))*2;
    I = randperm(n^2);
    y(I(1:n^2*0.5)) = NaN; # lose 1/2 of data
@@ -256,7 +256,7 @@ def smoothn(y,nS0=10,axis=None,smoothOrder=2.0,sd=None,verbose=False,\
   d =  y.ndim;
   Lambda = zeros(sizy);
   for i in axis:
-    # create a 1 x d array (so e.g. [1,1] for a 2D case
+    # create a 1 x template_distances array (so e.g. [1,1] for a 2D case
     siz0 = ones((1,y.ndim))[0];
     siz0 = numpy.asarray(siz0, dtype=int)
     siz0[i] = sizy[i];
@@ -347,7 +347,7 @@ def smoothn(y,nS0=10,axis=None,smoothOrder=2.0,sd=None,verbose=False,\
             #---
             # errp in here somewhere
             
-            #xpost,f,d = lbfgsb.fmin_l_bfgs_b(gcv,xpost,fprime=None,factr=10.,\
+            #xpost,f,template_distances = lbfgsb.fmin_l_bfgs_b(gcv,xpost,fprime=None,factr=10.,\
             #   approx_grad=True,bounds=[(log10(sMinBnd),log10(sMaxBnd))],\
             #   args=(Lambda,aow,DCTy,IsFinite,Wtot,y,nof,noe))
 
@@ -409,7 +409,7 @@ def smoothn(y,nS0=10,axis=None,smoothOrder=2.0,sd=None,verbose=False,\
             ['s = %.3f '%(s) + ': the upper bound for s '\
             + 'has been reached. Put s as an input variable if required.'])
     #warning('MATLAB:smoothn:MaxIter',\
-    #    ['Maximum number of iterations (%d'%(MaxIter) + ') has '\
+    #    ['Maximum number of iterations (%template_distances'%(MaxIter) + ') has '\
     #    + 'been exceeded. Increase MaxIter option or decrease TolZ value.'])
   return z,s,exitflag,Wtot
 
@@ -512,7 +512,7 @@ def dctND(data,f=dct):
 
 def peaks(n):
   '''
-  Mimic basic of matlab peaks fn
+  Mimic basic of matlab peaks_left fn
   '''
   xp = arange(n)
   [x,y] = meshgrid(xp,xp)

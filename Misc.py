@@ -1,10 +1,17 @@
+import os
+import shutil
+import sys
+
 import numpy
 from matplotlib import pyplot
 from sklearn import linear_model
-import shutil
-import os
+
+
+# Trick to get basemap to work
+path = sys.executable
+path = path.replace('bin/python', '')
+os.environ['PROJ_LIB'] = path + 'share/proj'
 from mpl_toolkits.basemap import Basemap
-from scipy import signal
 
 
 def plot_map(az, el, z, levels):

@@ -1,9 +1,9 @@
 import copy
 import os
 import pickle
+from matplotlib import  pyplot
 
 import numpy
-from matplotlib import pyplot
 from scipy.interpolate import NearestNDInterpolator
 from scipy.interpolate import RegularGridInterpolator
 
@@ -14,11 +14,12 @@ import Misc
 def read_hrtf(source, freq_list):
     local = os.path.abspath(__file__)
     folder = os.path.dirname(local)
+    wd = os.getcwd()
 
-    cache_file = 'hrtfs/cache.hrtf'
+    cache_file = 'cache.hrtf'
     hrtf_file = 'hrtfs/' + source + '.hrtf'
     hrtf_file = os.path.join(folder, hrtf_file)
-    cache_file = os.path.join(folder, cache_file)
+    cache_file = os.path.join(wd, cache_file)
     # Try using cached version - to speed up things
     try:
         stream = open(cache_file, 'rb')
@@ -28,9 +29,9 @@ def read_hrtf(source, freq_list):
         same_freqs = numpy.min(freq_list == hrtf['freq'])
         same_source = source == hrtf['source']
         if same_freqs and same_source: return hrtf
-        print('read_hrtf: Reading HRTF cache failed. Loading...')
     except:
         print('read_hrtf: Reading HRTF cache failed. Loading...')
+        print('HRTF cache file:', cache_file)
 
     stream = open(hrtf_file, 'rb')
     data = pickle.load(stream)
@@ -251,7 +252,7 @@ class TransferFunction:
         elevation = grids[1]
         coordinates = (elevation, azimuth, self.freq)
         if self.collapsed: coordinates = (elevation, azimuth)
-        if not self.collapsed and len(self.freq)<2: raise ValueError('Need more than 1 frequency')
+        if not self.collapsed and len(self.freq) < 2: raise ValueError('Need more than 1 frequency')
         self.left_function = RegularGridInterpolator(coordinates, self.left)
         self.right_function = RegularGridInterpolator(coordinates, self.right)
 
@@ -259,16 +260,26 @@ class TransferFunction:
         labels = ['Right', 'Left']
         plot_side_by_side(self.right, self.left, labels)
 
+    # This function creates a grid from the azimuth and elevantions
+    # it returns the HRTF at each combination of az/el for each frequency
+    # it is automatically used when collapse is set to false when
+    # instantiating the object
     def query_collapsed(self, azimuths, elevations):
         azimuths = numpy.array(azimuths)
         elevations = numpy.array(elevations)
-        coordinates = numpy.row_stack((elevations,azimuths))
+        coordinates = numpy.row_stack((elevations, azimuths))
         coordinates = numpy.transpose(coordinates)
         left_data = self.left_function(coordinates)
         right_data = self.right_function(coordinates)
         return left_data, right_data
 
-    def query(self, azimuths, elevations, freqs = None):
+
+    # This function treats the passed elevation and azimuths as a fixed
+    # list of azimuth/elevation pairs at which to get the HRTF value.
+    # len(azimuths) must be equal to len(elevations)
+    # it is automatically used when collapse is set to true when
+    # instantiating the object
+    def query(self, azimuths, elevations, freqs=None):
         if self.collapsed: return self.query_collapsed(azimuths, elevations)
         if freqs is None: freqs = self.freq
         az_grid, el_grid, f_grid = numpy.meshgrid(azimuths, elevations, freqs)
@@ -278,10 +289,37 @@ class TransferFunction:
 
 
 if __name__ == "__main__":
+    # from matplotlib import pyplot
+    #tf = TransferFunction('pd01', freq_list=[30000, 35000], collapse=False, db=True)
+    #l, r = tf.query(range(-180, 180), range(-90, 90))
+    # # print(r)
+    #
+    # # tf = TransferFunction('pd01', freq1=29, freq2=30, collapse=True, db=True, yaw_left=-10, yaw_right=10)
+    # # r = tf.get_templates([0, 0], [-10, 20])
+    # # print('left', r[0])
+    # # print('')
+    # # print('right', r[1])
+    #
+    # t = numpy.mean(l, axis=2)
+    # pyplot.imshow(t)
+    # pyplot.show()
+
+    ##
     from matplotlib import pyplot
-    tf = TransferFunction('pd01', freq_list=[30000,35000], collapse=False, db=True)
-    l,r = tf.query(range(-180,180), range(-90,90))
-    # print(r)
+    import pandas
+
+    tf = TransferFunction('pd01', freq_list=[41000,42000], collapse=True, db=True)
+    azimuths = range(-90,90)
+    l,r = tf.query(azimuths, [0] * len(azimuths))
+
+    pyplot.plot(azimuths, l)
+    pyplot.plot(azimuths, r)
+    pyplot.show()
+
+    data = pandas.DataFrame({'left':l,'right':r, 'azimuth':azimuths})
+    #data.to_csv('phillostomus.csv',index=False)
+
+
 
     # tf = TransferFunction('pd01', freq1=29, freq2=30, collapse=True, db=True, yaw_left=-10, yaw_right=10)
     # r = tf.get_templates([0, 0], [-10, 20])
@@ -289,7 +327,6 @@ if __name__ == "__main__":
     # print('')
     # print('right', r[1])
 
-    t = numpy.mean(l, axis=2)
-    pyplot.imshow(t)
-    pyplot.show()
-
+    # t = numpy.mean(l, axis=2)
+    # pyplot.imshow(t)
+    # pyplot.show()

@@ -74,7 +74,7 @@ def butter_analog_sos(band, L, w1, w2=0):
 
     Returns
     -------
-    d, c :  Analog weights of the filter
+    template_distances, c :  Analog weights of the filter
 
     Notes
     -----

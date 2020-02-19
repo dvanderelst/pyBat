@@ -42,7 +42,7 @@ class Bat:
         nr_of_steps = math.ceil(time / 0.01)
         nr_of_steps = kwargs.pop('steps', nr_of_steps)
         speed = kwargs.pop('speed', 0)
-
+        # Parameters are velocities
         body_yaw = kwargs.pop('body_y', 0)
         body_pitch = kwargs.pop('body_p', 0)
         body_roll = kwargs.pop('body_r', 0)
@@ -203,6 +203,7 @@ class Bat:
                 pyplot.xlabel('x')
                 pyplot.ylabel('y')
 
+
             if view.startswith('s'):
                 a = pyplot.arrow(b_x0, b_z0, b_x1, b_z1, head_width=0.01, head_length=0.025, fc='k', ec='k', alpha=0.75)
                 b = pyplot.arrow(t_x0, t_z0, t_x1, t_z1, head_width=0.01, head_length=0.025, fc='r', ec='r', alpha=0.50)
@@ -222,7 +223,6 @@ class Bat:
         pyplot.ylim(-max_value, max_value)
         ax = pyplot.gca()
         ax.set_aspect(1)
-        ax.invert_xaxis()
         results = {}
         results['vectors_body'] = vectors_body_abs
         results['vectors_head'] = vectors_head_abs

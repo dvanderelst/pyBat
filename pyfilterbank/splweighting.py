@@ -73,7 +73,7 @@ def weight_signal(data, sample_rate=44100, weighting='A'):
     Returns
     -------
     outdata : ndarray
-        Filtered output signal. The output will be weighted by
+        Filtered wiegrebe_output signal. The wiegrebe_output will be weighted by
         the specified filter function.
     """
     b, a = _weighting_coeff_design_funsd[weighting](sample_rate)

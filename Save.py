@@ -7,7 +7,7 @@ import Misc
 
 class DataSaver:
     def __init__(self, folder):
-        self.folder = os.path.join('output', folder)
+        self.folder = os.path.join('wiegrebe_output', folder)
         if not os.path.exists(self.folder): os.makedirs(self.folder)
 
     @property

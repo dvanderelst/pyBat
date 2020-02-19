@@ -1,21 +1,10 @@
 import numpy
 from matplotlib import pyplot
+
+from Signal import LowPassFilter, rectify
 from pyfilterbank.gammatone import GammatoneFilterbank
-from  scipy.signal import butter
 from scipy.signal import freqz
 from scipy.signal import lfilter
-
-def butter_lowpass(cutoff, fs, order):
-    nyq = 0.5 * fs
-    normal_cutoff = cutoff / nyq
-    b, a = butter(order, normal_cutoff, btype='low', analog=False)
-    return b, a
-
-
-def rectify(data):
-    new = data.copy()
-    new[new < 0] = 0
-    return new
 
 
 class ModelWiegrebe:
@@ -23,15 +12,16 @@ class ModelWiegrebe:
         self.sample_rate = sample_rate
         self.center = center
         self.bands = bands
-        self.gammatone = GammatoneFilterbank(samplerate=sample_rate, startband=-bands, endband=bands, normfreq=center)
+        self.gammatone = GammatoneFilterbank(samplerate=sample_rate, startband=-bands, endband=bands, normfreq=center, desired_delay_sec=0.001)
         if numpy.max(self.frequencies) > (sample_rate / 2) * 0.9: raise ValueError('Max frequency too high')
-        self.b, self.a = butter_lowpass(1000, sample_rate, 2)
         self.signal = None
+        self.filter = LowPassFilter(1000, sample_rate, 2)
         self.gamma_output = None
         self.rectified = None
         self.compressed = None
         self.filtered = None
         self.result = None
+        self.exponent = 0.4
 
     @property
     def frequencies(self):
@@ -46,17 +36,14 @@ class ModelWiegrebe:
             bm = numpy.vstack((bm, response))
         return bm
 
-    def run_filter(self, data):
-        output = lfilter(self.b, self.a, data, axis=1)
-        return output
-
     def run_model(self, signal):
         self.signal = signal
         self.gamma_output = self.run_gammatone()
         self.rectified = rectify(self.gamma_output)
-        self.compressed = numpy.power(self.rectified, 0.4)
-        self.filtered = self.run_filter(self.compressed)
+        self.compressed = numpy.power(self.rectified, self.exponent)
+        self.filtered = self.filter.run(self.compressed)
         self.result = rectify(self.filtered)
+        self.result = numpy.mean(self.result, axis=0)
         return self.result
 
     def plot_filter(self):
@@ -64,3 +51,6 @@ class ModelWiegrebe:
         f = 0.5 * self.sample_rate * w / numpy.pi
         db = 20 * numpy.log10(abs(h))
         pyplot.plot(f, db)
+
+
+

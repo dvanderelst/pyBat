@@ -1,12 +1,8 @@
+import warnings
 import numpy
-import math
 from acoustics import atmosphere
-from scipy.signal import chirp
-from scipy.signal import spectrogram
-from matplotlib import pyplot
-from scipy.special import j1
 
-def default_atmosphere(temperature=20, relative_humidity=100):
+def default_atmosphere(temperature=20, relative_humidity=50):
     temperature += 273.15
     return atmosphere.Atmosphere(temperature=temperature, relative_humidity=relative_humidity)
 
@@ -24,6 +20,9 @@ def db2ratio(db):
 
 
 def db2pa(db):
+    # see http://www.sengpielaudio.com/TableOfSoundPressureLevels.htm
+    min_value = numpy.min(db)
+    if min_value < 0: warnings.warn("db2pa function should not be used with negative values!")
     db = db.astype(float)
     return db2ratio(db) * (2.0 * 10 ** -5)
 
@@ -34,6 +33,15 @@ def incoherent_sum(db_levels):
     if db_levels.size == 0: return 0
     summed = numpy.sum(10 ** (db_levels / 10.0))
     summed = 10 * numpy.log10(summed)
+    return summed
+
+
+def coherent_sum(db_levels):
+    db_levels = numpy.array(db_levels, dtype='f')
+    db_levels = db_levels[db_levels > 0]
+    if db_levels.size == 0: return 0
+    summed = numpy.sum(10 ** (db_levels / 20.0))
+    summed = 20 * numpy.log10(summed)
     return summed
 
 
@@ -82,23 +90,24 @@ def dist2delay(dist, speed=343):
     return delay
 
 
-def sweep(f0,f1, duration, fs, plot=False):
-    delta_t = 1/fs
-    t = numpy.arange(0,duration, delta_t)
-    n = 64
-    signal = chirp(t, f0, duration, f1, method='hyperbolic')
-    if plot:
-        f, t, Sxx = spectrogram(signal, fs,nperseg=n,noverlap=n-1)
-        pyplot.pcolormesh(t, f, Sxx)
-        pyplot.ylabel('Frequency [Hz]')
-        pyplot.xlabel('Time [sec]')
-        pyplot.ylim([f1,f0])
-        pyplot.show()
-    return signal
+# Use the one in Signal
+# def sweep(f0,f1, duration, fs, plot=False):
+#     delta_t = 1/fs
+#     t = numpy.arange(0,duration, delta_t)
+#     n = 64
+#     signal = chirp(t, f0, duration, f1, method='hyperbolic')
+#     if plot:
+#         f, t, Sxx = spectrogram(signal, fs,nperseg=n,noverlap=n-1)
+#         pyplot.pcolormesh(t, f, Sxx)
+#         pyplot.ylabel('Frequency [Hz]')
+#         pyplot.xlabel('Time [sec]')
+#         pyplot.ylim([f1,f0])
+#         pyplot.show()
+#     return signal
 
 
 def freq2lambda(frequency, speed=343):
-    wavelength = speed/frequency
+    wavelength = speed / frequency
     return wavelength
 
 
@@ -109,8 +118,8 @@ def leaf_coefficient(radius, frequency, angle):
     wavelength = freq2lambda(frequency)
     k = (2 * numpy.pi) / wavelength
     radians = numpy.deg2rad(angle)
-    a = 0.5 * (k * radius)**2 + 0.7
-    b = 0.4 * (k * radius)**-0.9 + 1
+    a = 0.5 * (k * radius) ** 2 + 0.7
+    b = 0.4 * (k * radius) ** -0.9 + 1
     coefficient = a * numpy.cos(b * radians)
     return coefficient
 

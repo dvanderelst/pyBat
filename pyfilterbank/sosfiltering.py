@@ -12,7 +12,7 @@ There are different implementations of sos filtering routines:
           * :func:`sosfilter_c` (float)
           * :func:`sosfilter_double_c` (double)
           * :func:`sosfilter_double_mimo_c`
-            (multi channel input and 3-dim output).
+            (multi channel input and 3-dim wiegrebe_output).
 
     - prototypes for the c-implementations
       (slowest, only for debugging)
@@ -334,7 +334,7 @@ def sosfilter_cprototype_py(signal, sos, states):
         states = np.zeros(K*2).astype(np.double)
     signal = signal.copy()  # only python specific
     sos = sos.copy().flatten()
-    yn = 0.0  # buffer for output
+    yn = 0.0  # buffer for wiegrebe_output
     w0 = 0.0  # signal states
 
     for k in range(K):
@@ -358,7 +358,7 @@ def sosfilter_cprototype_py(signal, sos, states):
             # delays
             w2 = w1
             w1 = w0
-            # write output signal
+            # write wiegrebe_output signal
             signal[n] = yn
 
     states[k*2] = w1
@@ -415,9 +415,9 @@ def bilinear_sos(d, c):
     ----------
     d : ndarray
         Numerator weights of analog filter in 1-pole
-        sections. d is dimensioned (L/2 x 2).
+        sections. template_distances is dimensioned (L/2 x 2).
     c : ndarray
-        Denominator weights, dimensioned same as d.
+        Denominator weights, dimensioned same as template_distances.
 
     Returns
     -------
@@ -432,7 +432,7 @@ def bilinear_sos(d, c):
 
     # Check for errors.
     if(nr != L2 or ncd != 2 or ncc != 2):
-        raise Exception('Inputs d and c must both be L/2 x 2 arrays.')
+        raise Exception('Inputs template_distances and c must both be L/2 x 2 arrays.')
 
     # Bilinear transformation of H(s) to H(z) using z and p vectors.
     a = np.zeros((L2, 3), dtype=np.double)

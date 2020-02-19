@@ -482,7 +482,7 @@ def freqz(ofb, length_sec=6, ffilt=False, plot=True):
     ----------
     ofb : FractionalOctaveFilterbank object
     length_sec : scalar
-        Length of the impulse response test signal.
+        Length of the corrected_impulse response test signal.
     ffilt : bool
         Backard forward filtering. Effectiv order is doubled then.
     plot : bool

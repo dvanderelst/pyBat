@@ -6,7 +6,6 @@ from matplotlib import pyplot
 from natsort import natsorted
 from scipy.interpolate import interp1d
 
-
 class Logger:
     def __init__(self):
         self.data = {}
@@ -72,8 +71,8 @@ class Logger:
         time_stamps[time_stamps < min(time)] = min(time)
         time_stamps[time_stamps > max(time)] = max(time)
         # get gradient
-        differentiable = numpy.max(numpy.abs(numpy.diff(data)))
         if gradient:
+            differentiable = numpy.max(numpy.abs(numpy.diff(data)))
             if differentiable > 0: data = numpy.gradient(data, time, edge_order=1)
             if differentiable == 0: data = numpy.zeros(data.shape)
             data[~numpy.isfinite(data)] = 0
@@ -95,6 +94,11 @@ class Logger:
             data = self.get_history(field=key, time_stamps=time_stamps)
             df[key] = data
         return df
+
+    def export_to_html(self, time_stamps='all', link_keys=[]):
+        df = self.export(time_stamps)
+        html = df.to_html()
+        return html
 
     def plot(self, keys=None):
         time = self.time
