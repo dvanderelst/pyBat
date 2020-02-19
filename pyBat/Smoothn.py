@@ -95,9 +95,9 @@ def smoothn(y,nS0=10,axis=None,smoothOrder=2.0,sd=None,verbose=False,\
    y[[70, 75, 80]] = [5.5, 5, 6];
    z = smoothn(y); # Regular smoothing
    zr = smoothn(y,'robust'); # Robust smoothing
-   subplot(121), plot(x,y,'r.',x,z,'k','LineWidth',2)
+   subplot(121), plot(x,y,'seed_points.',x,z,'k','LineWidth',2)
    axis square, title('Regular smoothing')
-   subplot(122), plot(x,y,'r.',x,zr,'k','LineWidth',2)
+   subplot(122), plot(x,y,'seed_points.',x,zr,'k','LineWidth',2)
    axis square, title('Robust smoothing')
 
    # 2-D example
@@ -105,9 +105,9 @@ def smoothn(y,nS0=10,axis=None,smoothOrder=2.0,sd=None,verbose=False,\
    [x,y] = meshgrid(xp);
    f = exp(x+y) + sin((x-2*y)*3);
    fn = f + randn(size(f))*0.5;
-   fs = smoothn(fn);
+   sample_frequency = smoothn(fn);
    subplot(121), surf(xp,xp,fn), zlim([0 8]), axis square
-   subplot(122), surf(xp,xp,fs), zlim([0 8]), axis square
+   subplot(122), surf(xp,xp,sample_frequency), zlim([0 8]), axis square
 
    # 2-D example with missing data
    n = 256;
@@ -139,7 +139,7 @@ def smoothn(y,nS0=10,axis=None,smoothOrder=2.0,sd=None,verbose=False,\
    x = 2*cos(t).*(1-cos(t)) + randn(size(t))*0.1;
    y = 2*sin(t).*(1-cos(t)) + randn(size(t))*0.1;
    z = smoothn(complex(x,y));
-   plot(x,y,'r.',real(z),imag(z),'k','linewidth',2)
+   plot(x,y,'seed_points.',real(z),imag(z),'k','linewidth',2)
    axis equal tight
 
    # Cellular vortical flow
@@ -439,7 +439,7 @@ def gcv(p,Lambda,aow,DCTy,IsFinite,Wtot,y,nof,noe,smoothOrder):
     return GCVscore
 
 ## Robust weights
-#function W = RobustWeights(r,I,h,wstr)
+#function W = RobustWeights(seed_points,I,h,wstr)
 def RobustWeights(r,I,h,wstr):
     # weights for robust smoothing.
     MAD = median(abs(r[I]-median(r[I]))); # median absolute deviation
@@ -539,11 +539,11 @@ def test1():
    z = smoothn(y)[0]; # Regular smoothing
    zr = smoothn(y,isrobust=True)[0]; # Robust smoothing
    subplot(121)
-   plot(x,y,'r.')
+   plot(x,y,'seed_points.')
    plot(x,z,'k')
    title('Regular smoothing')
    subplot(122)
-   plot(x,y,'r.')
+   plot(x,y,'seed_points.')
    plot(x,zr,'k')
    title('Robust smoothing')
 
@@ -614,7 +614,7 @@ def test5():
    plt.figure(5)
    plt.clf()
    plt.title('Cardioid')
-   plot(x,y,'r.')
+   plot(x,y,'seed_points.')
    plot(zx,zy,'k')
 
 def test6(noise=0.05,nout=30):

@@ -1,6 +1,27 @@
 import warnings
+
 import numpy
 from acoustics import atmosphere
+
+reference_sound_pressure = 2 * 10 ** -5
+
+def make_impulse_response(delays, echoes_db, emission_duration, fs):
+    duration = numpy.max(delays) + emission_duration
+    impulse_time = numpy.arange(0, duration, 1 / fs)
+    impulse_response = numpy.zeros(len(impulse_time))
+    corrected_delays = delays + emission_duration / 2
+    indices = []
+    echoes_pa = db2pa(echoes_db)
+    for amplitude, delay in zip(echoes_pa, corrected_delays):
+        index = numpy.argmin(numpy.abs(impulse_time - delay))
+        impulse_response[index] = impulse_response[index] + amplitude
+        indices.append(index)
+    return_value = {}
+    return_value['impulse_time'] = impulse_time
+    return_value['ir_result'] = impulse_response
+    return_value['indices'] = numpy.array(indices)
+    return return_value
+
 
 def default_atmosphere(temperature=20, relative_humidity=50):
     temperature += 273.15
@@ -24,7 +45,7 @@ def db2pa(db):
     min_value = numpy.min(db)
     if min_value < 0: warnings.warn("db2pa function should not be used with negative values!")
     db = db.astype(float)
-    return db2ratio(db) * (2.0 * 10 ** -5)
+    return db2ratio(db) * reference_sound_pressure
 
 
 def incoherent_sum(db_levels):
@@ -90,22 +111,6 @@ def dist2delay(dist, speed=343):
     return delay
 
 
-# Use the one in Signal
-# def sweep(f0,f1, duration, fs, plot=False):
-#     delta_t = 1/fs
-#     t = numpy.arange(0,duration, delta_t)
-#     n = 64
-#     signal = chirp(t, f0, duration, f1, method='hyperbolic')
-#     if plot:
-#         f, t, Sxx = spectrogram(signal, fs,nperseg=n,noverlap=n-1)
-#         pyplot.pcolormesh(t, f, Sxx)
-#         pyplot.ylabel('Frequency [Hz]')
-#         pyplot.xlabel('Time [sec]')
-#         pyplot.ylim([f1,f0])
-#         pyplot.show()
-#     return signal
-
-
 def freq2lambda(frequency, speed=343):
     wavelength = speed / frequency
     return wavelength
@@ -122,25 +127,3 @@ def leaf_coefficient(radius, frequency, angle):
     b = 0.4 * (k * radius) ** -0.9 + 1
     coefficient = a * numpy.cos(b * radians)
     return coefficient
-
-# radius = numpy.array([0.05])
-# frequency = numpy.array([70000])
-# angle = numpy.array([0])
-#
-# radians = numpy.deg2rad(angle)
-#
-# wavelength = freq2lambda(frequency)
-#
-# k = 2 * numpy.pi / wavelength
-#
-# beta = 2 * k * radius * numpy.sin(radius)
-#
-#
-# part1 = (numpy.pi * radius ** 2) / wavelength
-#
-# part2 = (2 * j1(beta) / beta)**2
-# part3 = numpy.cos(radians) ** 2
-#
-# total = part1 * part2 * part3
-#
-# check1 = radius**2/wavelength

@@ -2,7 +2,7 @@ import numpy
 from matplotlib import pyplot
 
 from pyBat.Signal import LowPassFilter, rectify
-from pyBat.pyfilterbank.gammatone import GammatoneFilterbank
+from pyfilterbank.gammatone import GammatoneFilterbank
 from scipy.signal import freqz
 
 
@@ -53,3 +53,5 @@ class ModelWiegrebe:
 
 
 
+if __name__ == "__main__":
+    m = ModelWiegrebe(250000, 50000, 4)

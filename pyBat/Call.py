@@ -1,6 +1,8 @@
-from pyBat import Acoustics, Directivity
-import numpy
 import time
+
+import numpy
+
+from pyBat import Acoustics, Directivity
 
 
 def out_of_fov(azimuths, elevations):
@@ -10,11 +12,15 @@ def out_of_fov(azimuths, elevations):
     return not_in_fov
 
 
-
 class Call:
     def __init__(self, source, freq_list, **kwargs):
+
+        if source is None:
+            self.transfer = None
+        else:
+            self.transfer = Directivity.TransferFunction(source=source, freq_list=freq_list, collapse=True, **kwargs)
+
         self.mean_frequency = numpy.mean(numpy.array(freq_list))
-        self.transfer = Directivity.TransferFunction(source=source, freq_list=freq_list, collapse=True, **kwargs)
         self.atmosphere = Acoustics.default_atmosphere()
         self.attenuation_coefficient = self.atmosphere.attenuation_coefficient(self.mean_frequency) * -1
 
@@ -38,13 +44,13 @@ class Call:
         if noise is not None: echo_db = echo_db + noise
         if gains is not None: echo_db = echo_db + gains
 
-        directivity = self.transfer.query(azimuths, elevations)
+        directivity = 0
+        if self.transfer is not None: directivity = self.transfer.query(azimuths, elevations)
         echo_db_left = echo_db + directivity[0]
         echo_db_right = echo_db + directivity[1]
 
         echo_db_left[outside_of_fov] = 0
         echo_db_right[outside_of_fov] = 0
-
 
         echo_db_left[echo_db_left > self.call_level] = self.call_level
         echo_db_right[echo_db_right > self.call_level] = self.call_level

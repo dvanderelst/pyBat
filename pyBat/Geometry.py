@@ -223,8 +223,8 @@ def mat2sph(matrix):
 #
 #         # m1 = frame.rotation_matrix_frame2world
 #         # m2 = frame.rotation_matrix_world2frame
-#         # result = numpy.dot(m1, m2)
-#         # print(result)
+#         # call_result = numpy.dot(m1, m2)
+#         # print(call_result)
 #
 #
 # def test_cart2sph():

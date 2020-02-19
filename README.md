@@ -4,4 +4,6 @@ pyBat
 
 + acoustics: pip install acoustics
 + tranforms3d: pip install transforms3d
-+ pyfilerbank: download from https://github.com/SiggiGue/pyfilterbank and copy-paste to /home/dieter/anaconda3/lib/python3.6/site-packages
++ basemap: conda install -c conda-forge basemapy
++ cffi: pip install cffi
++ pyfilerbank: pip install git+https://github.com/SiggiGue/pyfilterbank.git`.

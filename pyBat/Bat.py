@@ -74,13 +74,13 @@ class Bat:
 
     def bat2world(self, bat, frame='a'):
         if frame.startswith('b'): world = self.body_abs.frame2world(bat)
-        if frame.startswith('r'): world = self.head_rel.frame2world(bat)
+        if frame.startswith('seed_points'): world = self.head_rel.frame2world(bat)
         if frame.startswith('a'): world = self.head_abs.frame2world(bat)
         return world
 
     def world2bat(self, world, frame='a', spherical=False):
         if frame.startswith('b'): bat = self.body_abs.world2frame(world, spherical=spherical)
-        if frame.startswith('r'): bat = self.head_rel.world2frame(world, spherical=spherical)
+        if frame.startswith('seed_points'): bat = self.head_rel.world2frame(world, spherical=spherical)
         if frame.startswith('a'): bat = self.head_abs.world2frame(world, spherical=spherical)
         return bat
 
@@ -114,7 +114,7 @@ class Bat:
 
     def get_history_vectors(self, time_stamps=None, frame='t'):
         if frame.startswith('b'): labels = ['b0', 'b1', 'b2', 'b3']
-        if frame.startswith('r'): labels = ['r0', 'r1', 'r2', 'r3']
+        if frame.startswith('seed_points'): labels = ['r0', 'r1', 'r2', 'r3']
         if frame.startswith('a'): labels = ['a0', 'a1', 'a2', 'a3']
         q0 = self.get_history(labels[0], time_stamps=time_stamps)
         q1 = self.get_history(labels[1], time_stamps=time_stamps)
@@ -197,20 +197,20 @@ class Bat:
 
             if view.startswith('t'):
                 a = pyplot.arrow(b_x0, b_y0, b_x1, b_y1, head_width=0.01, head_length=0.025, fc='k', ec='k', alpha=0.75)
-                b = pyplot.arrow(t_x0, t_y0, t_x1, t_y1, head_width=0.01, head_length=0.025, fc='r', ec='r', alpha=0.50)
+                b = pyplot.arrow(t_x0, t_y0, t_x1, t_y1, head_width=0.01, head_length=0.025, fc='seed_points', ec='seed_points', alpha=0.50)
                 pyplot.xlabel('x')
                 pyplot.ylabel('y')
 
 
             if view.startswith('s'):
                 a = pyplot.arrow(b_x0, b_z0, b_x1, b_z1, head_width=0.01, head_length=0.025, fc='k', ec='k', alpha=0.75)
-                b = pyplot.arrow(t_x0, t_z0, t_x1, t_z1, head_width=0.01, head_length=0.025, fc='r', ec='r', alpha=0.50)
+                b = pyplot.arrow(t_x0, t_z0, t_x1, t_z1, head_width=0.01, head_length=0.025, fc='seed_points', ec='seed_points', alpha=0.50)
                 pyplot.xlabel('x')
                 pyplot.ylabel('z')
 
             if view.startswith('3'):
                 ax.quiver(b_x0, b_y0, b_z0, b_x1, b_y1, b_z1, color='k', alpha=0.75)
-                ax.quiver(t_x0, t_y0, t_z0, t_x1, t_y1, t_z1, color='r', alpha=0.75)
+                ax.quiver(t_x0, t_y0, t_z0, t_x1, t_y1, t_z1, color='seed_points', alpha=0.75)
 
         if view.startswith('3'):
             pyplot.xlabel('x')

@@ -289,14 +289,14 @@ class TransferFunction:
 if __name__ == "__main__":
     # from matplotlib import pyplot
     #tf = TransferFunction('pd01', freq_list=[30000, 35000], collapse=False, db=True)
-    #l, r = tf.query(range(-180, 180), range(-90, 90))
-    # # print(r)
+    #l, seed_points = tf.query(range(-180, 180), range(-90, 90))
+    # # print(seed_points)
     #
     # # tf = TransferFunction('pd01', freq1=29, freq2=30, collapse=True, db=True, yaw_left=-10, yaw_right=10)
-    # # r = tf.get_templates([0, 0], [-10, 20])
-    # # print('left', r[0])
+    # # seed_points = tf.get_templates([0, 0], [-10, 20])
+    # # print('left', seed_points[0])
     # # print('')
-    # # print('right', r[1])
+    # # print('right', seed_points[1])
     #
     # t = numpy.mean(l, axis=2)
     # pyplot.imshow(t)
@@ -320,10 +320,10 @@ if __name__ == "__main__":
 
 
     # tf = TransferFunction('pd01', freq1=29, freq2=30, collapse=True, db=True, yaw_left=-10, yaw_right=10)
-    # r = tf.get_templates([0, 0], [-10, 20])
-    # print('left', r[0])
+    # seed_points = tf.get_templates([0, 0], [-10, 20])
+    # print('left', seed_points[0])
     # print('')
-    # print('right', r[1])
+    # print('right', seed_points[1])
 
     # t = numpy.mean(l, axis=2)
     # pyplot.imshow(t)
