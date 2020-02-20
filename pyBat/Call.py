@@ -44,7 +44,7 @@ class Call:
         if noise is not None: echo_db = echo_db + noise
         if gains is not None: echo_db = echo_db + gains
 
-        directivity = 0
+        directivity = [0, 0]
         if self.transfer is not None: directivity = self.transfer.query(azimuths, elevations)
         echo_db_left = echo_db + directivity[0]
         echo_db_right = echo_db + directivity[1]

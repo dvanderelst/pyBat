@@ -197,20 +197,20 @@ class Bat:
 
             if view.startswith('t'):
                 a = pyplot.arrow(b_x0, b_y0, b_x1, b_y1, head_width=0.01, head_length=0.025, fc='k', ec='k', alpha=0.75)
-                b = pyplot.arrow(t_x0, t_y0, t_x1, t_y1, head_width=0.01, head_length=0.025, fc='seed_points', ec='seed_points', alpha=0.50)
+                b = pyplot.arrow(t_x0, t_y0, t_x1, t_y1, head_width=0.01, head_length=0.025, fc='r', ec='r', alpha=0.50)
                 pyplot.xlabel('x')
                 pyplot.ylabel('y')
 
 
             if view.startswith('s'):
                 a = pyplot.arrow(b_x0, b_z0, b_x1, b_z1, head_width=0.01, head_length=0.025, fc='k', ec='k', alpha=0.75)
-                b = pyplot.arrow(t_x0, t_z0, t_x1, t_z1, head_width=0.01, head_length=0.025, fc='seed_points', ec='seed_points', alpha=0.50)
+                b = pyplot.arrow(t_x0, t_z0, t_x1, t_z1, head_width=0.01, head_length=0.025, fc='r', ec='r', alpha=0.50)
                 pyplot.xlabel('x')
                 pyplot.ylabel('z')
 
             if view.startswith('3'):
                 ax.quiver(b_x0, b_y0, b_z0, b_x1, b_y1, b_z1, color='k', alpha=0.75)
-                ax.quiver(t_x0, t_y0, t_z0, t_x1, t_y1, t_z1, color='seed_points', alpha=0.75)
+                ax.quiver(t_x0, t_y0, t_z0, t_x1, t_y1, t_z1, color='r', alpha=0.75)
 
         if view.startswith('3'):
             pyplot.xlabel('x')

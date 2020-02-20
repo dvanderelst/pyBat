@@ -58,9 +58,9 @@ class Jones:
         return a, b, c
 
 
-#j = Jones()
-#a = j.get_angular_velocity(1)
-#b = j.get_angular_velocity(2)
-#c = j.get_angular_velocity([1,2])
+#cloud_level_i = Jones()
+#a = cloud_level_i.get_angular_velocity(1)
+#b = cloud_level_i.get_angular_velocity(2)
+#c = cloud_level_i.get_angular_velocity([1,2])
 #print(a, b, c)
-#j.plot_data()
+#cloud_level_i.plot_data()
