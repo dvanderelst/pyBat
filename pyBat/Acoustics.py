@@ -1,9 +1,17 @@
 import warnings
-
+import math
 import numpy
 from acoustics import atmosphere
 
 reference_sound_pressure = 2 * 10 ** -5
+
+
+def find_nearest(array,value):
+    idx = numpy.searchsorted(array, value, side="left")
+    if idx > 0 and (idx == len(array) or math.fabs(value - array[idx-1]) < math.fabs(value - array[idx])):
+        return idx-1
+    else:
+        return idx
 
 def make_impulse_response(delays, echoes_db, emission_duration, fs):
     duration = numpy.max(delays) + emission_duration
@@ -13,7 +21,8 @@ def make_impulse_response(delays, echoes_db, emission_duration, fs):
     indices = []
     echoes_pa = db2pa(echoes_db)
     for amplitude, delay in zip(echoes_pa, corrected_delays):
-        index = numpy.argmin(numpy.abs(impulse_time - delay))
+        #index = numpy.argmin(numpy.abs(impulse_time - delay))
+        index =find_nearest(impulse_time, delay)
         impulse_response[index] = impulse_response[index] + amplitude
         indices.append(index)
     return_value = {}

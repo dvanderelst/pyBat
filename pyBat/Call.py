@@ -9,6 +9,7 @@ def out_of_fov(azimuths, elevations):
     abs_azimuths = numpy.abs(azimuths)
     abs_elevations = numpy.abs(elevations)
     not_in_fov = 1 - ((abs_azimuths < 90) * (abs_elevations < 90))
+    not_in_fov = not_in_fov == 1
     return not_in_fov
 
 
@@ -41,6 +42,7 @@ class Call:
         spreading = self.spreading_parameter * numpy.log10(distances)
         attenuation = self.attenuation_coefficient * distances * 2
         echo_db = self.call_level + spreading + attenuation + self.reflection_parameter
+
         if noise is not None: echo_db = echo_db + noise
         if gains is not None: echo_db = echo_db + gains
 

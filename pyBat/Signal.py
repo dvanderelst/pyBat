@@ -17,6 +17,7 @@ def smooth_signal(signal, samples, window):
 
 def sweep(f1, f2, duration, sample_rate=250000, method='hyperbolic', ramp=5):
     steps = numpy.ceil(duration * sample_rate)
+    steps = int(steps)
     time_array = numpy.linspace(0, duration, steps)
     signal = chirp(time_array, f1, duration, f2, method=method)
     if ramp > 0:
