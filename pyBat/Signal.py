@@ -6,6 +6,17 @@ from scipy.signal import spectrogram
 from scipy.signal import windows
 from scipy.signal.windows import hamming
 
+
+def dechirp(emission, echo):
+    # ifft(conj(ftt emission).*fft(echo))
+    emission_padding = echo.shape[0] - emission.shape[0]
+    padded_emission = numpy.pad(emission, (0, emission_padding), 'constant')
+    a = numpy.conj(numpy.fft.fft(padded_emission))
+    b = numpy.fft.fft(echo)
+    c = numpy.fft.ifft(a * b)
+    d = numpy.real(c)
+    return d
+
 def smooth_signal(signal, samples, window):
     if window == 'box': w = windows.boxcar(samples)
     if window == 'han': w = windows.hann(samples)

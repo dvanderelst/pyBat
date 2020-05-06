@@ -1,6 +1,6 @@
 import numpy
 from matplotlib import pyplot
-from pyfilterbank.gammatone import GammatoneFilterbank
+from .Gammatone import GammatoneFilterbank
 from scipy.fftpack import fft, ifft
 from scipy.signal import freqz
 
@@ -26,15 +26,12 @@ def attenuation_matrix(attenuation_coefficients, signal_length, sample_rate):
         scale = numpy.linspace(0, distance_max, signal_length) * attenuation *2
         matrix.append(scale)
     matrix = numpy.array(matrix)
+    matrix = Acoustics.db2ratio(matrix)
     return matrix
 
 
 class ModelWiegrebe:
-    def __init__(self, sample_rate, center, bands, emission=None):
-        # emission should be the same length as the signals you want to
-        # process using the model. If needed, zero pad the emission
-        self.emission = emission
-        if self.emission is not None: self.emission = numpy.conj(fft(emission))
+    def __init__(self, sample_rate, center, bands):
         self.sample_rate = sample_rate
         self.center = center
         self.bands = bands
@@ -59,11 +56,6 @@ class ModelWiegrebe:
     def set_lowpass(self, frequency):
         self.filter = LowPassFilter(frequency, self.sample_rate, 2)
 
-    def dechirp(self):
-        a = self.emission * fft(self.signal)
-        b = ifft(a)
-        self.signal = b
-
     def run_gammatone(self):
         analyse = self.gammatone.analyze(self.signal)
         n = self.signal.size
@@ -73,10 +65,8 @@ class ModelWiegrebe:
             bm = numpy.vstack((bm, response))
         return bm
 
-    def run_model(self, signal, dechirp=True, apply_attenuation=False):
+    def run_model(self, signal, apply_attenuation=False):
         self.signal = signal
-        if dechirp and self.emission is not None: self.dechirp()
-        if dechirp and self.emission is None: print('CAN NOT DECHIRP WITHOUT EMISSION SIGNAL')
         self.gamma_output = self.run_gammatone()
         if apply_attenuation:
             signal_length = self.signal.size

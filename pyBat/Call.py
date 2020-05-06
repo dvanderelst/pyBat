@@ -96,16 +96,16 @@ def process4avoidance(result, delta_t=0.1):
     return left_sum, right_sum, min_delay
 
 
-if __name__ == "__main__":
-    source = 'pd01'
-    freq_list = [25000, 35000]
-
-    azs = [-30, 0, 30]
-    els = [0, 0, 0]
-    distances = [3, 3, 3]
-
-    c = Call(source=source, freq_list=freq_list, pitch=30)
-    print('call1')
-    result = c.call(azs, els, distances)
-    print('call2')
-    result = c.call(azs, els, distances)
+# if __name__ == "__main__":
+#     source = 'pd01'
+#     freq_list = [25000, 35000]
+#
+#     azs = [-30, 0, 30]
+#     els = [0, 0, 0]
+#     distances = [3, 3, 3]
+#
+#     c = Call(source=source, freq_list=freq_list, pitch=30)
+#     print('call1')
+#     result = c.call(azs, els, distances)
+#     print('call2')
+#     result = c.call(azs, els, distances)
