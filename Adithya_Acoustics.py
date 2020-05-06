@@ -23,6 +23,13 @@ class RobotSonar:
 
 
     def call(self, azimuths, elevation, distance):
+        # If not objects are in the field of view...
+        if len(azimuths) == 0:
+            result = {}
+            result['left_echo_sequence'] = numpy.zeros(100)
+            result['right_echo_sequence'] = numpy.zeros(100)
+            return result
+
         result = self.caller.call(azimuths, elevation, distance)
         delays = result['delays']
         echoes_left = result['echoes_left']
@@ -57,10 +64,10 @@ if __name__ == "__main__":
 
     azimuths = numpy.zeros(3)
     elevations = numpy.zeros(3)
-    distances = numpy.linspace(2,3,3)
+    distances = numpy.linspace(100,101,3)
 
 
-    result = c.call(azimuths, elevations, distances)
+    result = c.call([], [], [])
     pyplot.plot(result['left_echo_sequence'])
     pyplot.show()
     pyplot.plot(result['echoes_left'])
