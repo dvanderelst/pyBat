@@ -13,6 +13,7 @@ def find_nearest(array,value):
     else:
         return idx
 
+
 def make_impulse_response(delays, echoes_db, emission_duration, fs):
     duration = numpy.max(delays) + emission_duration
     impulse_time = numpy.arange(0, duration, 1 / fs)
