@@ -123,6 +123,10 @@ class Frame:
         self.motion_vector = numpy.array([1, 0, 0])
         self.apply_quaternion(rotation)
 
+    def goto(self, x=0, y=0, z=0, yaw=0, pitch=0, roll=0):
+        self.position = numpy.array([x, y, z])
+        self.set_rotations(yaw, pitch, roll)
+
 
 def make_quaternion(yaw=0, pitch=0, roll=0):
     pitch_rad = numpy.deg2rad(pitch)

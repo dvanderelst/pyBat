@@ -2,6 +2,7 @@ import numpy
 import math
 from matplotlib import pyplot
 from pyBat import Misc, Logger, Geometry
+from mpl_toolkits.mplot3d import Axes3D
 
 numpy.set_printoptions(precision=3)
 
@@ -11,7 +12,17 @@ class Bat:
         self.body_abs = Geometry.Frame()
         self.head_rel = Geometry.Frame()
         self.logger = Logger.Logger()
+        self.auto_limit_angles = True
         self.clock = 0
+
+        self.head_yaw_limit = 90
+        self.head_pitch_limit = 45
+        self.head_roll_limit = 60
+
+        self.body_pitch_limit = 30
+        self.body_roll_limit = 30
+
+
 
     @property
     def head_abs(self):
@@ -57,7 +68,7 @@ class Bat:
         #head_roll = head_roll - body_roll
 
         if nr_of_steps > 1:
-            time_steps = numpy.linspace(0, time, nr_of_steps)
+            time_steps = numpy.linspace(0, time, nr_of_steps + 1)
             time_steps = numpy.diff(time_steps)
         else:
             time_steps = [time]
@@ -66,11 +77,18 @@ class Bat:
             self.body_abs.move(time=step, yaw=body_yaw, pitch=body_pitch, roll=body_roll, speed=speed)
             self.head_rel.move(time=step, yaw=head_yaw, pitch=head_pitch, roll=head_roll, speed=0)
 
-            self.head_rel.limit_rotations(yaw_limit=90, pitch_limit=45, roll_limit=60)
-            self.body_abs.limit_rotations(pitch_limit=30, roll_limit=30)
+
+            if self.auto_limit_angles:
+                self.head_rel.limit_rotations(yaw_limit=self.head_yaw_limit, pitch_limit=self.head_pitch_limit, roll_limit=self.head_roll_limit)
+                self.body_abs.limit_rotations(pitch_limit=self.body_pitch_limit, roll_limit=self.body_roll_limit)
 
             self.clock += step
             self.update_log()
+
+    def goto(self, x=0, y=0, z=0, yaw=0, pitch=0, roll=0):
+        if self.auto_limit_angles:
+            if pitch > 30: print('Warning: requested pitch too large!')
+        self.body_abs.goto(x, y, z, yaw, pitch, roll)
 
     def bat2world(self, bat, frame='a'):
         if frame.startswith('b'): world = self.body_abs.frame2world(bat)
@@ -103,7 +121,7 @@ class Bat:
         # Add head quaternion
         self.logger['r0', 'r1', 'r2', 'r3'] = self.head_rel.quaternion
         # Add total quaternion
-        self.logger['a0', 'a1', 'a2', 'a3'] = self.head_abs.quaternion
+        self.logger['h0', 'h1', 'h2', 'h3'] = self.head_abs.quaternion
 
     def get_history(self, field, time_stamps=None, gradient=False, unwrap=True, absolute=False):
         apply_unwrap = False
@@ -112,10 +130,9 @@ class Bat:
         data = self.logger.get_history(field, time_stamps, gradient, apply_unwrap, False, absolute)
         return data
 
-    def get_history_vectors(self, time_stamps=None, frame='t'):
+    def get_history_vectors(self, time_stamps=None, frame='b'):
         if frame.startswith('b'): labels = ['b0', 'b1', 'b2', 'b3']
-        if frame.startswith('seed_points'): labels = ['r0', 'r1', 'r2', 'r3']
-        if frame.startswith('a'): labels = ['a0', 'a1', 'a2', 'a3']
+        if frame.startswith('h'): labels = ['h0', 'h1', 'h2', 'h3']
         q0 = self.get_history(labels[0], time_stamps=time_stamps)
         q1 = self.get_history(labels[1], time_stamps=time_stamps)
         q2 = self.get_history(labels[2], time_stamps=time_stamps)
@@ -134,7 +151,7 @@ class Bat:
         quaternions = numpy.asmatrix(quaternions)
         positions = numpy.asmatrix(positions)
         vectors = numpy.zeros(shape=positions.shape)
-        for index in range(0, len(time_stamps)):
+        for index in range(0, positions.shape[0]):
             quaternion = Misc.mat2array(quaternions[index, :])
             position = Misc.mat2array(positions[index, :])
             frame = Geometry.Frame(quaternion=quaternion, position=position)
@@ -164,7 +181,7 @@ class Bat:
         mx = t.max()
         if time_stamps is None: time_stamps = self.logger['time']
         if type(time_stamps) == float: time_stamps = numpy.arange(mn, mx, time_stamps)
-        vectors_head_abs, start_head_abs, _ = self.get_history_vectors(time_stamps=time_stamps, frame='a')
+        vectors_head_abs, start_head_abs, _ = self.get_history_vectors(time_stamps=time_stamps, frame='h')
         vectors_body_abs, start_body_abs, _ = self.get_history_vectors(time_stamps=time_stamps, frame='b')
 
         vectors_head_abs *= length
@@ -201,7 +218,6 @@ class Bat:
                 pyplot.xlabel('x')
                 pyplot.ylabel('y')
 
-
             if view.startswith('s'):
                 a = pyplot.arrow(b_x0, b_z0, b_x1, b_z1, head_width=0.01, head_length=0.025, fc='k', ec='k', alpha=0.75)
                 b = pyplot.arrow(t_x0, t_z0, t_x1, t_z1, head_width=0.01, head_length=0.025, fc='r', ec='r', alpha=0.50)
@@ -227,6 +243,17 @@ class Bat:
         results['start_head'] = start_head_abs
         results['start_body'] = start_body_abs
         return results, a, b
+
+
+
+# b = Bat()
+# b.goto(1,1,0,yaw=0, pitch=30)
+# b.motion(time=1.41, speed=1, steps=3)
+# #b.motion(time=0.5, speed=1, steps=3)
+# #b.plot_quiver('all', view='top')
+# #pyplot.grid()
+# #pyplot.show()
+# print(b.x)
 
 
 # a = numpy.array([0, 0, 1])
