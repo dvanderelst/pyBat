@@ -132,13 +132,21 @@ def make_quaternion(yaw=0, pitch=0, roll=0):
     pitch_rad = numpy.deg2rad(pitch)
     yaw_rad = numpy.deg2rad(yaw)
     roll_rad = numpy.deg2rad(roll)
-    rotation_vector = numpy.array([roll_rad, pitch_rad, yaw_rad])
-    theta = math.sqrt(numpy.dot(rotation_vector, rotation_vector))
-    # Deal with small thetas
-    if theta > 0: rotation_vector = rotation_vector / theta
-    if theta < 1e-6: rotation_vector = numpy.array([1, 0, 0])
-    rotation = quaternions.axangle2quat(rotation_vector, theta, True)
-    return rotation
+    q = euler.euler2quat(roll_rad, pitch_rad, yaw_rad, axes='sxyz')
+    return q
+
+# This was the old version
+# def make_quaternion(yaw=0, pitch=0, roll=0):
+#     pitch_rad = numpy.deg2rad(pitch)
+#     yaw_rad = numpy.deg2rad(yaw)
+#     roll_rad = numpy.deg2rad(roll)
+#     rotation_vector = numpy.array([roll_rad, pitch_rad, yaw_rad])
+#     theta = math.sqrt(numpy.dot(rotation_vector, rotation_vector))
+#     # Deal with small thetas
+#     if theta > 0: rotation_vector = rotation_vector / theta
+#     if theta < 1e-6: rotation_vector = numpy.array([1, 0, 0])
+#     rotation = quaternions.axangle2quat(rotation_vector, theta, True)
+#     return rotation
 
 
 def rotate_points_cart(x, y, z, yaw=0, pitch=0, roll=0):
@@ -197,6 +205,26 @@ def mat2sph(matrix):
     elevation = Misc.mat2array(elevation)
     distance = Misc.mat2array(distance)
     return azimuth, elevation, distance
+
+
+def phi_range(alpha):
+    alpha = numpy.array([alpha])
+    alpha = numpy.deg2rad(alpha)
+    alpha = numpy.mod(alpha,2*numpy.pi)
+    idx = alpha>numpy.pi
+    alpha[idx] = alpha[idx]-2*numpy.pi
+    alpha = numpy.rad2deg(alpha)
+    return alpha[0]
+
+def phi2_range(alpha):
+    alpha = numpy.array([alpha])
+    alpha = numpy.deg2rad(alpha)
+    positiveInput = (alpha > 0)
+    alpha = numpy.mod(alpha, 2*numpy.pi)
+    alpha[alpha == 0 * positiveInput] = 2*numpy.pi
+    alpha = numpy.rad2deg(alpha)
+    return alpha[0]
+
 
 # def test_frame():
 #     reference = numpy.array(([1, 2, 3], [3, 4, 5]))
