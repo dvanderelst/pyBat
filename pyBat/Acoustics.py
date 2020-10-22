@@ -14,6 +14,14 @@ def find_nearest(array,value):
         return idx
 
 def make_impulse_response(delays, echoes_db, emission_duration, fs):
+    if delays.size == 0:
+        t = numpy.arange(0, emission_duration, 1 / fs)
+        return_value = {}
+        return_value['impulse_time'] = t
+        return_value['ir_result'] = numpy.zeros(t.shape)
+        return_value['indices'] = numpy.array([])
+        return return_value
+
     duration = numpy.max(delays) + emission_duration
     impulse_time = numpy.arange(0, duration, 1 / fs)
     impulse_response = numpy.zeros(len(impulse_time))
@@ -125,14 +133,14 @@ def freq2lambda(frequency, speed=343):
     return wavelength
 
 
-def leaf_coefficient(radius, frequency, angle):
-    radius = numpy.array(radius)
-    frequency = numpy.array(frequency)
-    angle = numpy.array(angle)
-    wavelength = freq2lambda(frequency)
-    k = (2 * numpy.pi) / wavelength
-    radians = numpy.deg2rad(angle)
-    a = 0.5 * (k * radius) ** 2 + 0.7
-    b = 0.4 * (k * radius) ** -0.9 + 1
-    coefficient = a * numpy.cos(b * radians)
-    return coefficient
+# def leaf_coefficient(radius, frequency, angle):
+#     radius = numpy.array(radius)
+#     frequency = numpy.array(frequency)
+#     angle = numpy.array(angle)
+#     wavelength = freq2lambda(frequency)
+#     k = (2 * numpy.pi) / wavelength
+#     radians = numpy.deg2rad(angle)
+#     a = 0.5 * (k * radius) ** 2 + 0.7
+#     b = 0.4 * (k * radius) ** -0.9 + 1
+#     coefficient = a * numpy.cos(b * radians)
+#     return coefficient

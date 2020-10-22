@@ -44,6 +44,7 @@ class ModelWiegrebe:
         self.rectified = None
         self.compressed = None
         self.filtered = None
+        self.matrix = None
         self.result = None
         self.exponent = 0.4
         # for frequency specific atmospheric filtering - if requested
@@ -77,15 +78,23 @@ class ModelWiegrebe:
         self.rectified = rectify(self.gamma_output)
         self.compressed = numpy.power(self.rectified, self.exponent)
         self.filtered = self.filter.run(self.compressed)
-        self.result = rectify(self.filtered)
-        self.result = numpy.mean(self.result, axis=0)
+        self.matrix = rectify(self.filtered)
+        self.result = numpy.mean(self.matrix, axis=0)
         return self.result
 
     def plot_filter(self):
-        w, h = freqz(self.b, self.a)
+        w, h = freqz(self.filter.b, self.filter.a)
         f = 0.5 * self.sample_rate * w / numpy.pi
         db = 20 * numpy.log10(abs(h))
         pyplot.plot(f, db)
+
+    def plot_matrix(self):
+        matrix = self.matrix
+        y = self.frequencies
+        max_time = (1 / self.sample_rate) * matrix.shape[1]
+        x = numpy.linspace(0, 1, matrix.shape[1]) * max_time
+        pyplot.contourf(x, y, matrix)
+        pyplot.show()
 
 
 if __name__ == "__main__":

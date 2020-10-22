@@ -76,8 +76,6 @@ class Bat:
         for step in time_steps:
             self.body_abs.move(time=step, yaw=body_yaw, pitch=body_pitch, roll=body_roll, speed=speed)
             self.head_rel.move(time=step, yaw=head_yaw, pitch=head_pitch, roll=head_roll, speed=0)
-
-
             if self.auto_limit_angles:
                 self.head_rel.limit_rotations(yaw_limit=self.head_yaw_limit, pitch_limit=self.head_pitch_limit, roll_limit=self.head_roll_limit)
                 self.body_abs.limit_rotations(pitch_limit=self.body_pitch_limit, roll_limit=self.body_roll_limit)
@@ -175,7 +173,7 @@ class Bat:
         axis.set_ylabel('Y Label')
         axis.set_zlabel('Z Label')
 
-    def plot_quiver(self, time_stamps=None, view='top', length=0.05):
+    def plot_quiver(self, time_stamps=None, view='top', length=0.05, auto_axis=True):
         t = self.logger['time']
         mn = t.min()
         mx = t.max()
@@ -233,10 +231,12 @@ class Bat:
             pyplot.ylabel('y')
             return
 
-        pyplot.xlim(-max_value, max_value)
-        pyplot.ylim(-max_value, max_value)
-        ax = pyplot.gca()
-        ax.set_aspect(1)
+        if auto_axis:
+            pyplot.xlim(-max_value, max_value)
+            pyplot.ylim(-max_value, max_value)
+            ax = pyplot.gca()
+            ax.set_aspect(1)
+
         results = {}
         results['vectors_body'] = vectors_body_abs
         results['vectors_head'] = vectors_head_abs
